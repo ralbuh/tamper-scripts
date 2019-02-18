@@ -1,22 +1,20 @@
 // ==UserScript==
 // @name         vakantieveilingen buy
 // @namespace    http://vakantieveilingen.nl/
-// @version      1.1.1
+// @version      1.1.2
 // @updateURL    https://github.com/kemalizing/tamper-scripts/raw/master/vv.user.js
 // @description  try to take over the world!
 // @author       You
 // @include      *vakantieveilingen.nl*
-// @grant        none
 // @grant       GM.setValue
 // @grant       GM.getValue
 // ==/UserScript==
 
-var maxBid = 0;
+var maxBid = 5;
 var tid;
 // var tid = setInterval(mycode, 500);
 function mycode() {
 //             GM.setValue("foo", "bar");
-            maxBid = GM.getValue("maxBid", 0);
             var bid = document.getElementById('jsActiveBidInput');
             var refresh = document.getElementsByClassName('i-refresh-white')[0];
             var button = document.getElementById('jsActiveBidButton');
@@ -40,15 +38,32 @@ function mycode() {
         location.reload();
     }
 }
+
 function abortTimer() { // to be called when you want to stop the timer
   clearInterval(tid);
 }
 
-(function() {
+function setMaxBid() {
+    var vv_maxBid = document.getElementById('vv_maxBid');
+    console.log("vv_maxBid:"+vv_maxBid.value);
+    var newMax = parseInt(vv_maxBid.value);
+    if(newMax){
+        maxBid = newMax;
+        GM.setValue("maxBid", maxBid).then();
+    }
+}
+
+(async () => {
     'use strict';
+
+    maxBid = await GM.getValue("maxBid", maxBid);
+
     var newHTML = document.createElement ('h1');
-    newHTML.innerHTML = '<h1 style="color:red;position:fixed;top:150px;right:100px;z-index:1111"> <strong>WILL BUY UP UNTIL € '+maxBid+' </strong></h1>';
+    newHTML.innerHTML = '<h1 style="color:red;position:fixed;top:150px;right:100px;z-index:1111"> <strong>WILL BUY UP UNTIL € <input id="vv_maxBid" size=1 value="'+maxBid+'"/> </strong></h1>';
     document.body.appendChild (newHTML);
+    var vv_maxBid = document.getElementById('vv_maxBid');
+    vv_maxBid.addEventListener ("input", setMaxBid , false);
+
     tid = setInterval(mycode, 500);
     // Your code here...
 })();
