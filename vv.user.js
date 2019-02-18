@@ -7,12 +7,16 @@
 // @author       You
 // @include      *vakantieveilingen.nl*
 // @grant        none
+// @grant       GM.setValue
+// @grant       GM.getValue
 // ==/UserScript==
 
-var maxBid = 20;
+var maxBid = 0;
 var tid;
 // var tid = setInterval(mycode, 500);
 function mycode() {
+//             GM.setValue("foo", "bar");
+            maxBid = GM.getValue("maxBid", 0);
             var bid = document.getElementById('jsActiveBidInput');
             var refresh = document.getElementsByClassName('i-refresh-white')[0];
             var button = document.getElementById('jsActiveBidButton');
