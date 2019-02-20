@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         vakantieveilingen buy
 // @namespace    http://vakantieveilingen.nl/
-// @version      1.1.3
+// @version      1.2.0
 // @updateURL    https://github.com/kemalizing/tamper-scripts/raw/master/vv.user.js
 // @description  try to take over the world!
 // @author       You
@@ -10,16 +10,17 @@
 // @grant       GM.getValue
 // ==/UserScript==
 
-var maxBid = 5;
+var maxBid = 0;
+var maxBidKey = location.pathname+"_maxBid";
+var vv_maxBid;
 var tid;
-// var tid = setInterval(mycode, 500);
+
 function mycode() {
-//             GM.setValue("foo", "bar");
-            var bid = document.getElementById('jsActiveBidInput');
-            var refresh = document.getElementsByClassName('i-refresh-white')[0];
-            var button = document.getElementById('jsActiveBidButton');
-            var minBid = document.getElementsByClassName('fastBidValue')[0];
-            var timer = document.getElementsByClassName('timer-countdown-label')[0];
+    var bid = document.getElementById('jsActiveBidInput');
+    var refresh = document.getElementsByClassName('i-refresh-white')[0];
+    var button = document.getElementById('jsActiveBidButton');
+    var minBid = document.getElementsByClassName('fastBidValue')[0];
+    var timer = document.getElementsByClassName('timer-countdown-label')[0];
 
     if(button){
         document.getElementById("vv_note").style.visibility = "visible";
@@ -49,24 +50,24 @@ function abortTimer() { // to be called when you want to stop the timer
 }
 
 function setMaxBid() {
-    var vv_maxBid = document.getElementById('vv_maxBid');
-    console.log("vv_maxBid:"+vv_maxBid.value);
+//    var vv_maxBid = document.getElementById('vv_maxBid');
+//    console.log("vv_maxBid:"+vv_maxBid.value);
     var newMax = parseInt(vv_maxBid.value);
     if(newMax){
         maxBid = newMax;
-        GM.setValue("maxBid", maxBid).then();
+        GM.setValue(maxBidKey, maxBid).then();
     }
 }
 
 (async () => {
     'use strict';
 
-    maxBid = await GM.getValue("maxBid", maxBid);
+    maxBid = await GM.getValue(maxBidKey, maxBid);
 
     var newHTML = document.createElement ('h1');
     newHTML.innerHTML = '<h1 id="vv_note" style="color:red;position:fixed;top:150px;right:100px;z-index:1111"> <strong>WILL BUY UP UNTIL € <input id="vv_maxBid" size=1 value="'+maxBid+'"/> </strong></h1>';
     document.body.appendChild (newHTML);
-    var vv_maxBid = document.getElementById('vv_maxBid');
+    vv_maxBid = document.getElementById('vv_maxBid');
     vv_maxBid.addEventListener ("input", setMaxBid , false);
 
     tid = setInterval(mycode, 500);
