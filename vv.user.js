@@ -28,9 +28,8 @@ function mycode() {
         document.getElementById("vv_note").style.visibility = "hidden";
     }
     if(bid && timer){
-        console.log("maxBid:"+maxBid+" minBid:"+minBid.textContent+(minBid.textContent<=maxBid));
-
-        setCookie(location, minBid, 1);
+        //console.log("maxBid:"+maxBid+" minBid:"+minBid.textContent+(minBid.textContent<=maxBid));
+        //setCookie(location, minBid, 1);
 
         if(timer.textContent == "01" ){
             if(minBid.textContent<=maxBid){
@@ -50,8 +49,6 @@ function abortTimer() { // to be called when you want to stop the timer
 }
 
 function setMaxBid() {
-//    var vv_maxBid = document.getElementById('vv_maxBid');
-//    console.log("vv_maxBid:"+vv_maxBid.value);
     var newMax = parseInt(vv_maxBid.value);
     if(newMax){
         maxBid = newMax;
