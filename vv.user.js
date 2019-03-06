@@ -12,8 +12,13 @@
 
 var maxBid = 0;
 var maxBidKey = location.pathname+"_maxBid";
-var winnersKey = location.pathname+"_winners";
+
 var winners = ""
+var winnersKey = location.pathname+"_winners";
+
+var minWinner = null;
+var minWinnerKey = location.pathname+"_minWinner";
+
 var vv_maxBid;
 var tid;
 
@@ -43,14 +48,20 @@ function mycode() {
     }
     if(refresh) {
         (async () => {
+
             winners = await GM.getValue(winnersKey, winners);
             var winnerArr = winners.split(", ");
             if(winnerArr.length>15){
                 winnerArr = winnerArr.slice(winnerArr.length-15, winnerArr.length);
             }
-            winnerArr.push( document.getElementById("jsMainLotCurrentBid").textContent);
+            var currentWinner = parseInt(document.getElementById("jsMainLotCurrentBid").textContent);
+            winnerArr.push(currentWinner);
             winners = winnerArr.join(", ");
             GM.setValue(winnersKey, winners);
+            if(!minWinner || currentWinner<minWinner){
+                minWinner = currentWinner;
+                GM.setValue(minWinnerKey, minWinner);
+            }
         })();
         location.reload();
         abortTimer();
@@ -74,9 +85,11 @@ function setMaxBid() {
 
     maxBid = await GM.getValue(maxBidKey, maxBid);
     winners = await GM.getValue(winnersKey, winners);
+    minWinner = await GM.getValue(minWinnerKey, minWinner);
 
     var newHTML = document.createElement ('h1');
-    newHTML.innerHTML = '<h1 id="vv_note" style="color:red;position:fixed;top:150px;right:100px;z-index:1111"> <strong>WILL BUY UP UNTIL € <input id="vv_maxBid" size=1 value="'+maxBid+'"/> </strong><br><small>winners: '+winners+'</small></h1>';
+    newHTML.innerHTML = '<h1 id="vv_note" style="color:red;position:fixed;top:150px;right:100px;z-index:1111"> <strong>WILL BUY UP UNTIL € <input id="vv_maxBid" size=1 value="'+maxBid+'"/> </strong>'+
+        '<br><small>minWinner: '+minWinner+' <br>winners: '+winners+'</small></h1>';
     document.body.appendChild (newHTML);
     vv_maxBid = document.getElementById('vv_maxBid');
     vv_maxBid.addEventListener ("input", setMaxBid , false);
