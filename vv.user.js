@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         vakantieveilingen buy
 // @namespace    http://vakantieveilingen.nl/
-// @version      1.2.0
+// @version      1.3.0
 // @updateURL    https://github.com/kemalizing/tamper-scripts/raw/master/vv.user.js
 // @description  try to take over the world!
 // @author       You
@@ -12,6 +12,8 @@
 
 var maxBid = 0;
 var maxBidKey = location.pathname+"_maxBid";
+var winnersKey = location.pathname+"_winners";
+var winners = ""
 var vv_maxBid;
 var tid;
 
@@ -40,11 +42,16 @@ function mycode() {
         }
     }
     if(refresh) {
-        location.reload();
+        (async () => {
+            winners = await GM.getValue(winnersKey, winners);
+            console.log("winners:"+winners);
+            GM.setValue(winnersKey, winners + document.getElementById("jsMainLotCurrentBid").textContent + ", ");
+        })();
+     //   location.reload();
     }
 }
 
-function abortTimer() { // to be called when you want to stop the timer
+function abortTimer() {
   clearInterval(tid);
 }
 
@@ -60,9 +67,10 @@ function setMaxBid() {
     'use strict';
 
     maxBid = await GM.getValue(maxBidKey, maxBid);
+    winners = await GM.getValue(winnersKey, winners);
 
     var newHTML = document.createElement ('h1');
-    newHTML.innerHTML = '<h1 id="vv_note" style="color:red;position:fixed;top:150px;right:100px;z-index:1111"> <strong>WILL BUY UP UNTIL € <input id="vv_maxBid" size=1 value="'+maxBid+'"/> </strong></h1>';
+    newHTML.innerHTML = '<h1 id="vv_note" style="color:red;position:fixed;top:150px;right:100px;z-index:1111"> <strong>WILL BUY UP UNTIL € <input id="vv_maxBid" size=1 value="'+maxBid+'"/> <br>winners: '+winners+'</strong></h1>';
     document.body.appendChild (newHTML);
     vv_maxBid = document.getElementById('vv_maxBid');
     vv_maxBid.addEventListener ("input", setMaxBid , false);
