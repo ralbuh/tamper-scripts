@@ -47,7 +47,7 @@ function mycode() {
             console.log("winners:"+winners);
             GM.setValue(winnersKey, winners + document.getElementById("jsMainLotCurrentBid").textContent + ", ");
         })();
-     //   location.reload();
+        location.reload();
     }
 }
 
