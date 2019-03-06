@@ -35,11 +35,12 @@ function mycode() {
         document.getElementById("vv_note").style.visibility = "hidden";
     }
     if(bid && timer){
-        //console.log("maxBid:"+maxBid+" minBid:"+minBid.textContent+(minBid.textContent<=maxBid));
+        console.log("maxBid:"+maxBid+" minBid:"+minBid.textContent+(minBid.textContent<=maxBid));
         //setCookie(location, minBid, 1);
 
         if(timer.textContent == "01" ){
-            if(minBid.textContent<=maxBid){
+            var minBidInt = parseInt(minBid.textContent);
+            if(minBidInt<=maxBid){
                 bid.value = minBid.textContent;
                 button.click();
                 abortTimer();
@@ -74,7 +75,7 @@ function abortTimer() {
 
 function setMaxBid() {
     var newMax = parseInt(vv_maxBid.value);
-    if(newMax){
+    if(newMax!=null){
         maxBid = newMax;
         GM.setValue(maxBidKey, maxBid).then();
     }
