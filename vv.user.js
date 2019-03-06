@@ -58,7 +58,7 @@ function mycode() {
             winnerArr.push(currentWinner);
             winners = winnerArr.join(", ");
             GM.setValue(winnersKey, winners);
-            if(!minWinner || currentWinner<minWinner){
+            if(currentWinner>0 && (!minWinner || currentWinner<minWinner)){
                 minWinner = currentWinner;
                 GM.setValue(minWinnerKey, minWinner);
             }
