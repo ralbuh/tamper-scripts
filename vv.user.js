@@ -85,7 +85,7 @@ function abortTimer() {
 
 function setMaxBid() {
     var newMax = parseInt(vv_maxBid.value);
-    if(newMax!=null){
+    if(!isNaN(newMax)){
         maxBid = newMax;
         GM.setValue(maxBidKey, maxBid).then();
     }
