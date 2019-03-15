@@ -1,28 +1,38 @@
 // ==UserScript==
 // @name         vakantieveilingen buy
 // @namespace    http://vakantieveilingen.nl/
-// @version      1.3.1
+// @version      1.3.2
 // @updateURL    https://github.com/kemalizing/tamper-scripts/raw/master/vv.user.js
 // @description  try to take over the world!
 // @author       You
 // @include      *vakantieveilingen.nl*
 // @grant       GM.setValue
 // @grant       GM.getValue
+// @require https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js
 // ==/UserScript==
 
+var bidName = null;
+var bidNameView = document.getElementById("lotTitle");
+if(bidNameView){
+    bidName = bidNameView.textContent.trim();
+}
+
 var maxBid = 0;
-var maxBidKey = location.pathname+"_maxBid";
+var maxBidKey = bidName+"_maxBid";
 
 var winners = ""
-var winnersKey = location.pathname+"_winners";
+var winnersKey = bidName+"_winners";
 
 var minWinner = null;
-var minWinnerKey = location.pathname+"_minWinner";
+var minWinnerKey = bidName+"_minWinner";
 
 var vv_maxBid;
 var tid;
 
 function mycode() {
+    //if(bidName){
+        //console.log("maxBidKey:"+maxBidKey+" jq disptime:"+$("#biddingBlock .display-time-value").textContent);
+    //}
     var bid = document.getElementById('jsActiveBidInput');
     var refresh = document.getElementsByClassName('i-refresh-white')[0];
     var button = document.getElementById('jsActiveBidButton');
@@ -30,12 +40,12 @@ function mycode() {
     var timer = document.getElementsByClassName('timer-countdown-label')[0];
 
     if(button){
-        document.getElementById("vv_note").style.visibility = "visible";
+        $("#vv_note").show();
     } else {
-        document.getElementById("vv_note").style.visibility = "hidden";
+        $("#vv_note").hide();
     }
     if(bid && timer){
-        console.log("maxBid:"+maxBid+" minBid:"+minBid.textContent+(minBid.textContent<=maxBid));
+        //console.log("maxBid:"+maxBid+" minBid:"+minBid.textContent+(minBid.textContent<=maxBid));
         //setCookie(location, minBid, 1);
 
         if(timer.textContent == "01" ){
@@ -83,6 +93,7 @@ function setMaxBid() {
 
 (async () => {
     'use strict';
+        console.log("XbidName:"+bidName);
 
     maxBid = await GM.getValue(maxBidKey, maxBid);
     winners = await GM.getValue(winnersKey, winners);
@@ -90,7 +101,7 @@ function setMaxBid() {
 
     var newHTML = document.createElement ('h1');
     newHTML.innerHTML = '<h1 id="vv_note" style="color:red;position:fixed;top:150px;right:100px;z-index:1111"> <strong>WILL BUY UP UNTIL € <input id="vv_maxBid" size=1 value="'+maxBid+'"/> </strong>'+
-        '<br><small>minWinner: '+minWinner+' <br>winners: '+winners+'</small></h1>';
+        '<br><small>min won price: '+minWinner+' <br>latest won prices: '+winners+'</small></h1>';
     document.body.appendChild (newHTML);
     vv_maxBid = document.getElementById('vv_maxBid');
     vv_maxBid.addEventListener ("input", setMaxBid , false);
