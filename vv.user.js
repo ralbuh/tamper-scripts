@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         vakantieveilingen buy
 // @namespace    http://vakantieveilingen.nl/
-// @version      1.4.0
+// @version      1.4.1
 // @updateURL    https://github.com/kemalizing/tamper-scripts/raw/master/vv.user.js
 // @description  try to take over the world!
 // @author       You
@@ -66,7 +66,10 @@ function mycode() {
         (async () => {
 
             winners = await GM.getValue(winnersKey, winners);
-            var winnerArr = winners.split(", ");
+            var winnerArr = [];
+            if(winners != ""){
+                winnerArr = winners.split(", ");
+            }
             if(winnerArr.length>15){
                 winnerArr = winnerArr.slice(winnerArr.length-15, winnerArr.length);
             }
@@ -125,6 +128,7 @@ function setMaxBid() {
     winners = await GM.getValue(winnersKey, winners);
     minWinner = await GM.getValue(minWinnerKey, minWinner);
     var winnerArr = winners.split(", ");
+    console.log("winnerArr:"+winnerArr+" fixed:"+average(winnerArr)+" winners:"+winners);
     avgWinner = average(winnerArr).toFixed();
 
     var newHTML = document.createElement ('h1');
