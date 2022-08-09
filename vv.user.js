@@ -1,94 +1,84 @@
 // ==UserScript==
-// @name         vakantieveilingen buy
+// @name         vakantieveilingen auto buy
 // @namespace    http://vakantieveilingen.nl/
-// @version      1.4.1
+// @version      1.5.0
 // @updateURL    https://github.com/kemalizing/tamper-scripts/raw/master/vv.user.js
-// @description  try to take over the world!
+// @description  vakantieveilingen.nl auto bid
 // @author       You
 // @include      *vakantieveilingen.nl*
-// @grant       GM.setValue
-// @grant       GM.getValue
-// @require https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js
+// @grant        GM.setValue
+// @grant        GM.getValue
+// @require      https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js
 // ==/UserScript==
-
-var bidName = null;
 
 var maxBid = 0;
 var winners = ""
-var winnersKey, maxBidKey, minWinnerKey;
+var avgWinner, minWinner = null;
+var bidName, bidKey, winnersKey, maxBidKey, minWinnerKey, vv_maxBid, tid;
 
+function bidLogic() {
+    //console.log("maxBidKey:"+maxBidKey+" jq disptime:"+$("#biddingBlock .display-time-value").textContent);
+    var refreshLinks = document.querySelector('a[data-aq="reopen-auction"]'); // this one only appears after the auction has closed
+    var bid = document.querySelector("input#bid"); // input field for user bid
+    var button = document.querySelector('button[data-aq="place-bid"]'); // bid button for user bid
+    var minBid = document.querySelectorAll('button[data-aq="fastbid-button"]')[1]; // second fastbid button underneath the user bid input field
+    var timer = document.querySelector('div.timer-countdown-label'); // this one only appears during last minute (sub 60 seconds countdown)
 
-var avgWinner = null;
-var minWinner = null;
-
-var vv_maxBid;
-var tid;
-
-function mycode() {
-
-    var bid = document.getElementById('jsActiveBidInput');
-    var button = document.getElementById('jsActiveBidButton');
-    var minBid = document.getElementById('jsMainLotCurrentBid');
-    var timer = document.getElementsByClassName('timer-countdown-label')[0];
-
-    if(button){
+    if (button){
         $("#vv_note").show();
     } else {
         $("#vv_note").hide();
     }
 
-
-    if(bid && timer){
-        var minBidInt = parseInt(minBid.textContent);
-        bid.value = minBidInt+1;
-        console.log("maxBid:"+maxBid+" minBid:"+minBid.textContent+" timer:"+timer.textContent+" button:"+button.innerText);
+    if (bid && timer){
+        //console.log("maxBid:"+maxBid+" minBid:"+minBid.textContent+(minBid.textContent<=maxBid));
         //setCookie(location, minBid, 1);
 
         if(timer.textContent == "01" ){
-            console.log("1 sec left");
-            minBidInt = parseInt(minBid.textContent);
-            if(maxBid>0 && minBidInt<maxBid){
-                console.log("buying");
-                bid.value = minBidInt+1;;
+            var minBidInt = parseInt(minBid.textContent);
+            if(minBidInt<=maxBid){
+                bid.value = minBid.textContent;
                 button.click();
                 abortTimer();
-                console.log("bought!");
-            } else {
-                console.log("no bid. maxBid:"+maxBid+" minBid:"+minBidInt);
             }
         }
     }
 
-    var refreshLinks = $("a[data-track-action='reopen auction']");
-    var auctionClosing = document.getElementsByClassName('auction-closing')
-
-    if(refreshLinks.length>0 || auctionClosing.length>0) {
+    if (refreshLinks) {
         (async () => {
 
             winners = await GM.getValue(winnersKey, winners);
             var winnerArr = [];
-            if(winners != ""){
-                winnerArr = winners.split(", ");
-            }
-            if(winnerArr.length>15){
-                winnerArr = winnerArr.slice(winnerArr.length-15, winnerArr.length);
-            }
-            var currentWinner = minBidInt;
-            if(minBid){
-                currentWinner = parseInt(minBid.textContent);
-            }
-            winnerArr.push(currentWinner);
+            if(winners != "") winnerArr = winners.split(", ");
+            //if(winnerArr.length>15) winnerArr = winnerArr.slice(winnerArr.length-15, winnerArr.length);
+
+            var currentHighestBid = parseInt(document.querySelector('div[data-aq="highest-bid"] > h3').textContent.replace('€','').trim());
+            var currentWinner = document.querySelector('h2.MuiTypography-big-extra').textContent;
+            console.log(currentHighestBid);
+            winnerArr.push(currentHighestBid);
             winners = winnerArr.join(", ");
-            console.log("updating winners "+winners+" currentWinner:"+currentWinner+ "winnersKey:"+winnersKey);
             GM.setValue(winnersKey, winners);
-            if(currentWinner>0 && (!minWinner || currentWinner<minWinner)){
-                minWinner = currentWinner;
+
+            if(currentHighestBid>0 && (!minWinner || currentHighestBid<minWinner)){
+                minWinner = currentHighestBid;
                 GM.setValue(minWinnerKey, minWinner);
             }
         })();
-        location.reload();
+
+        //location.reload(); // not needed anymore since page automatically reloads
         abortTimer();
     }
+}
+
+function hashCode(str) {
+    var hash = 0, i, chr;
+    if (str.length === 0) return hash;
+    for (i = 0; i < str.length; i++) {
+        chr = str.charCodeAt(i);
+        hash = ((hash << 5) - hash) + chr;
+        //hash |= 0; // Convert to 32bit integer
+    }
+    return hash;
 }
 
 function average(elmt){
@@ -102,7 +92,7 @@ function average(elmt){
 }
 
 function abortTimer() {
-  clearInterval(tid);
+    clearInterval(tid);
 }
 
 function setMaxBid() {
@@ -115,14 +105,16 @@ function setMaxBid() {
 
 (async () => {
     'use strict';
+
     while(!bidName){
-        bidName = document.getElementById("lotTitle").textContent.trim();
-        console.log("XbidName:"+bidName);
+        bidName = document.querySelector('h3.MuiTypography-big-extra').textContent;
+        //console.log("bidName:" + bidName);
     }
 
-    winnersKey = bidName+"_winners";
-    maxBidKey = bidName+"_maxBid";
-    minWinnerKey = bidName+"_minWinner";
+    bidKey = hashCode(bidName);
+    winnersKey = bidKey+"_winners";
+    maxBidKey = bidKey+"_maxBid";
+    minWinnerKey = bidKey+"_minWinner";
 
     maxBid = await GM.getValue(maxBidKey, maxBid);
     winners = await GM.getValue(winnersKey, winners);
@@ -131,13 +123,17 @@ function setMaxBid() {
     console.log("winnerArr:"+winnerArr+" fixed:"+average(winnerArr)+" winners:"+winners);
     avgWinner = average(winnerArr).toFixed();
 
-    var newHTML = document.createElement ('h1');
-    newHTML.innerHTML = '<h1 id="vv_note" style="color:red;position:fixed;top:150px;right:100px;z-index:1111"> <strong>WILL BUY UP UNTIL € <input id="vv_maxBid" size=1 value="'+maxBid+'"/> </strong>'+
-        '<br><small>Min won price: '+minWinner+' Avg won price:'+avgWinner+'<br>latest won prices: '+winners+'</small></h1>';
+    var newHTML = document.createElement ('div');
+    newHTML.innerHTML = `
+    <div id="vv_note" style="font-size: 1.2em; color:white; background-color:rgb(0 103 145 / 80%); border-radius: 20px; padding: 10px 20px; position:fixed; bottom:50px; right:50px; z-index:1111;">
+      <p><b>Max auto bid € <input style="font-size: 1em;font-weight: bold;background: transparent;color: white;border: none;" id="vv_maxBid" size=1 value="${maxBid}"/></b></p>
+      <p style="max-width: 400px;"><small>Min won price: ${minWinner} Avg won price: ${avgWinner}
+      </br>latest won prices: ${winners}</small></p>
+    </div>`;
     document.body.appendChild (newHTML);
+
     vv_maxBid = document.getElementById('vv_maxBid');
     vv_maxBid.addEventListener ("input", setMaxBid , false);
 
-    tid = setInterval(mycode, 500);
-    // Your code here...
+    tid = setInterval(bidLogic, 500);
 })();
